@@ -5,8 +5,10 @@ from rest_framework import generics
 from .serializers import UserSerializer, GroupSerializer
 from rest_framework_swagger.views import get_swagger_view
 from django.conf.urls import url
-from .models import Poll, Option
+from .models import Poll, Option, ConnectedUsers
 from .serializers import PollSerializer, OptionSerializers
+from django.http import HttpResponse
+from django.shortcuts import render
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -47,3 +49,32 @@ class OptionViewSet(viewsets.ModelViewSet):
         permissions.IsAuthenticated
     ]
     serializer_class = OptionSerializers
+
+
+def index(request):
+    polls = [poll for poll in Poll.objects.all()]
+    return render(request, 'index.html', {
+        'polls': polls
+    })
+
+
+def room(request, poll_id):
+    # Send article by id to user
+    poll = Poll.objects.get(id=poll_id)
+    options = [c for c in Option.objects.filter(poll_id=poll_id)]
+    if poll:
+        return render(request, 'room.html', {
+            'poll_id': poll_id,
+            'options': options,
+            'poll': poll
+        })
+    else:
+        return HttpResponse('Wrong Article id')
+
+
+def users_online(request):
+    if request.user.is_authenticated:
+        connected_users = [user for user in ConnectedUsers.objects.all()]
+        return render(request, 'online.html', {
+            'connected_users': connected_users
+        })

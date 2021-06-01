@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Poll</title>
+</head>
+<body>
+    <h3>{{poll.name}} created by {{poll.author}} finish at {{poll.date_finish}}</h1>
+
+    <form>
+        <div>
+            {% for option in options %}
+                <input class="rb" type="radio" 
+                    name="poll" value={{option.id}} id="option_{{option.text}}">
+                <label for="option_{{option.text}}">{{option.text}}</label>
+                <span id="option_{{option.id}}_voices">({{option.number_of_voices}} voices)</span>
+                <br/>
+            {% endfor %}
+        </div>
+        <div>
+          <button id="submit" >Submit</button>
+        </div>
+    </form>
+    {{ poll_id|json_script:"poll-id" }}
+
+
+    <script>
+        const poll_id = JSON.parse(document.getElementById('poll-id').textContent);
+
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/lab/'
+            + poll_id
+            + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            console.log(e.data)
+            const data = JSON.parse(e.data);
+            document.querySelector('#option_' + data.id + '_voices').innerText = '('+data.number_of_voices + 'voices)'
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#submit').onclick = function(e) {
+            e.preventDefault();
+            var form = document.querySelector("form");
+            var data = new FormData(form);
+            var option_id = "";
+            document.getElementById("submit").disabled = true;
+            var x = document.getElementsByClassName("rb");
+            var i;
+            for (i = 0; i < x.length; i++) {
+                x[i].disabled = true;
+            }
+            for (const entry of data) {
+                option_id = entry[1] + "\r";
+            };
+            chatSocket.send(JSON.stringify({
+                'option_id': option_id,
+            }));
+        };
+    </script>
+</body>
+</html>

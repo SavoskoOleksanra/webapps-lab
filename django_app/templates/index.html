@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Polls</title>
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Author</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        {% for poll in polls %}
+            <tr>
+                <td>{{poll.name}}</td>
+                <td>{{poll.author}}</td>
+                <td>{{poll.date_create}}</td>
+                <td><button onclick="openPollById({{poll.id}})">Open</button></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function openPollById(poll_id){
+            window.location.pathname = '/lab/' + poll_id + '/';
+        }
+    </script>
+</body>
+</html> 
