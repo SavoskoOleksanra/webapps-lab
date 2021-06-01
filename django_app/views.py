@@ -9,7 +9,8 @@ from .models import Poll, Option, ConnectedUsers
 from .serializers import PollSerializer, OptionSerializers
 from django.http import HttpResponse
 from django.shortcuts import render
-
+from django.http import HttpResponse
+from django_app.tasks import send_email, long_work
 
 class UserViewSet(viewsets.ModelViewSet):
     """
@@ -78,3 +79,17 @@ def users_online(request):
         return render(request, 'online.html', {
             'connected_users': connected_users
         })
+
+
+def send_email_task(request):
+    email_task_id = send_email.apply_async(queue='email', args=(['savosko2017@gmail.com'],))
+    return HttpResponse(f'The jobs for sending email in progress. Wait for finish. Task id {email_task_id}')
+
+
+def run_long_task(request):
+    ml_task_id = long_work.apply_async(queue='long_task', args=(5,))
+    return HttpResponse(f'job id are:  {ml_task_id}')
+
+
+def list_finished_tasks(request):
+    return render(request, 'list.html')
